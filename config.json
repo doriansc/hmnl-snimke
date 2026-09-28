@@ -1,0 +1,61 @@
+{
+  "deadlineHours": 24,
+  "seasonStart": "2026-07-01",
+  "seasonTag": "26/27",
+  "roundRegex": "(\\d{1,2})\\s*[.\\-_ ]?\\s*kolo|kolo\\s*[.\\-_ ]?\\s*(\\d{1,2})",
+  "onlyVideos": true,
+  "clipPatterns": ["izjav", "tiktok", "instagram", "reels", "highlight", "sazetak", "najava"],
+  "saltPrefix": "prvahmnl-snimke:v1:",
+  "leagues": [
+    {
+      "id": "shmnl",
+      "name": "SuperSport HMNL",
+      "semaforUrl": "https://semafor.hns.family/natjecanja/115835988/futsal-shmnl-2627/detaljno/",
+      "fallbackSchedule": "raspored/shmnl-2627.json",
+      "tenantId": "eae57c80-68f7-466d-9b52-0b1c9c9e401a",
+      "clientId": "cb37ac0b-5e48-49f9-b916-2b049ed412a2",
+      "spHost": "nogometnisavezkazupanije.sharepoint.com",
+      "sites": [],
+      "siteSearch": "kolo",
+      "leagueAccounts": [],
+      "clubs": {
+        "538": { "accounts": ["torcida"] },
+        "1044": { "accounts": ["square"] },
+        "2711": { "accounts": ["novovrijeme"] },
+        "3238": { "accounts": ["crnica"] },
+        "4027": { "accounts": ["osijek"] },
+        "5394": { "accounts": ["futsaldinamo"] },
+        "5579": { "accounts": ["hajduk"] },
+        "107551": { "accounts": ["olmissum"] },
+        "122976": { "accounts": ["futsalpula"] },
+        "175217": { "accounts": ["rijeka"] }
+      }
+    },
+    {
+      "id": "prva",
+      "name": "Prva HMNL",
+      "semaforUrl": "https://semafor.hns.family/natjecanja/116065747/prva-hmnl-2627/detaljno/",
+      "fallbackSchedule": "raspored/prva-2627.json",
+      "tenantId": "94f889f3-9b61-4761-9a33-9ec3646a32b1",
+      "clientId": "2b4511bc-88d1-4c67-ba83-8468ff53387a",
+      "spHost": "prvahmnl.sharepoint.com",
+      "sites": [],
+      "siteSearch": "kolo",
+      "leagueAccounts": [
+        "prvahmnl"
+      ],
+      "clubs": {
+        "85926": { "accounts": ["aurelia"] },
+        "123615": { "accounts": ["bacvice"] },
+        "3239": { "accounts": ["jezera"] },
+        "3636": { "accounts": ["malamljekara"] },
+        "3907": { "accounts": ["novi.marof"] },
+        "175481": { "accounts": ["podstrana"] },
+        "501": { "accounts": ["split"] },
+        "118569": { "accounts": ["universitas"] },
+        "607": { "accounts": ["uspinjaca"] },
+        "521": { "accounts": ["vrgorac"] }
+      }
+    }
+  ]
+}

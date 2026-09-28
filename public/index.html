@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Snimke utakmica · HMNL</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --ink:#15181d; --muted:#667085; --line:#e4e7ec; --soft:#f0f2f5;
+  --accent:#d6173a; --accent-ink:#fff;
+  --ok:#12805c; --ok-bg:#e3f5ed;
+  --late:#a15c00; --late-bg:#fff1d6;
+  --miss:#c01840; --miss-bg:#fde6ec;
+  --wait:#1f5fbf; --wait-bg:#e4eefc;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --err-bg:#fde8ec; --err-ink:#8a1030; --err-line:#f5c2cd;
+  --info-bg:#eef4ff; --info-ink:#1d3f7a; --info-line:#cbdcff;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1115; --panel:#171a20; --ink:#e8eaee; --muted:#98a2b3; --line:#262b33; --soft:#1d2129;
+  --accent:#ef3b5a;
+  --ok:#3ccf91; --ok-bg:#133326;
+  --late:#f2b84b; --late-bg:#3a2a0e;
+  --miss:#ff6b88; --miss-bg:#3d1520;
+  --wait:#7fb0ff; --wait-bg:#16284a;
+  --shadow:none;
+  --err-bg:#3a121c; --err-ink:#ffb3c1; --err-line:#5c1f2d;
+  --info-bg:#15223a; --info-ink:#b8cdf5; --info-line:#243a60;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{height:34px;padding:0 8px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:13px;letter-spacing:.5px}
+h1{font-size:16px;margin:0;font-weight:650}
+.sub{color:var(--muted);font-size:12px}
+.spacer{flex:1}
+button,select,input{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn:disabled{opacity:.6;cursor:default}
+.tabs{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px}
+.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted)}
+.tabs button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+main{max-width:1280px;margin:0 auto;padding:18px 16px 48px}
+.meta{color:var(--muted);font-size:12px;margin:0 0 12px}
+.meta a{color:inherit}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:20px}
+.card h2{font-size:14px;margin:0;padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h2 .hint{font-weight:400;color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-left:4px solid var(--line)}
+.stat.ok{border-left-color:var(--ok)} .stat.late{border-left-color:var(--late)} .stat.miss{border-left-color:var(--miss)} .stat.wait{border-left-color:var(--wait)}
+.stat .k{color:var(--muted);font-size:12px}
+.stat .v{font-size:24px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:13px;font-weight:500;color:var(--muted)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:center}
+.matrix td,.matrix th{text-align:center;padding:5px 4px}
+.matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:var(--panel);font-weight:600;padding-left:16px;padding-right:12px;z-index:1}
+.matrix th.cur{color:var(--ink)}
+.matrix th button{border:0;background:none;color:inherit;font-weight:inherit;cursor:pointer;padding:2px 4px;border-radius:4px}
+.matrix th.sel button{background:var(--ink);color:var(--panel)}
+.cell{display:inline-grid;place-items:center;width:30px;height:26px;border-radius:6px;font-size:13px;font-weight:700;border:0;cursor:pointer;padding:0}
+.cell.ok{background:var(--ok-bg);color:var(--ok)}
+.cell.late{background:var(--late-bg);color:var(--late)}
+.cell.miss{background:var(--miss-bg);color:var(--miss)}
+.cell.wait{background:var(--wait-bg);color:var(--wait)}
+.cell.future{background:transparent;border:1.5px dashed var(--line);color:var(--muted);font-weight:400}
+.cell.unknown{background:var(--soft);color:var(--muted);font-weight:400}
+.cell.away{background:transparent;cursor:default;color:var(--muted);opacity:.45;font-weight:400}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .cell{width:22px;height:20px;font-size:11px;cursor:default}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.late{background:var(--late-bg);color:var(--late)}
+.pill.miss{background:var(--miss-bg);color:var(--miss)} .pill.wait{background:var(--wait-bg);color:var(--wait)}
+.pill.future,.pill.unknown,.pill.plain{background:var(--soft);color:var(--muted)}
+.rnav{display:flex;align-items:center;gap:6px;margin-left:auto}
+.rnav select{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:5px 8px}
+.rnav .btn{padding:5px 10px}
+.games{list-style:none;margin:0;padding:0}
+.game{display:grid;grid-template-columns:130px minmax(0,1fr) 60px 150px minmax(0,1.1fr);gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.game:last-child{border-bottom:0}
+.game .when{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.game .teams b{font-weight:650}
+.game .teams .vs{color:var(--muted);margin:0 6px}
+.game .score{font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+.game .detail{font-size:13px;color:var(--muted);min-width:0}
+.game .detail a{color:var(--ink);text-decoration:none;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.game .detail a:hover{color:var(--accent);text-decoration:underline}
+.game .detail span{display:block}
+.filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.filters select,.filters input{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px}
+.filters input{flex:1;min-width:180px}
+.feed td a{color:inherit;text-decoration:none;font-weight:500}
+.feed td a:hover{color:var(--accent);text-decoration:underline}
+.tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600;background:var(--soft);color:var(--muted);margin-left:6px}
+.tag.bad{background:var(--miss-bg);color:var(--miss)}
+.small{font-size:12px}
+.feed td{vertical-align:top}
+.muted{color:var(--muted)}
+.center{display:grid;place-items:center;min-height:65vh}
+.login{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:28px 24px}
+.login h2{margin:0 0 4px;font-size:18px}
+.login p{margin:0 0 18px;color:var(--muted)}
+.login label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 4px}
+.login input[type=text],.login input[type=password]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px}
+.login input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.login .row{display:flex;align-items:center;gap:8px;margin:14px 0 18px;font-size:13px;color:var(--muted)}
+.login .btn{width:100%;padding:10px}
+.warn{background:var(--late-bg);color:var(--late);border:1px solid transparent;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.warn .btn{padding:4px 10px}
+.err,.info,.warn{border-radius:10px;padding:10px 14px;margin-bottom:14px;white-space:pre-wrap}
+.err{background:var(--err-bg);color:var(--err-ink);border:1px solid var(--err-line)}
+.info{background:var(--info-bg);color:var(--info-ink);border:1px solid var(--info-line)}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes s{to{transform:rotate(360deg)}}
+.empty-row td{color:var(--muted);text-align:center;padding:24px}
+@media (max-width:820px){
+  .game{grid-template-columns:1fr auto;gap:4px 12px}
+  .game .when{grid-column:1/-1}
+  .game .score{text-align:right}
+  .game .status{grid-column:1/2}
+  .game .detail{grid-column:1/-1}
+}
+@media (max-width:640px){
+  .hide-sm{display:none}
+  header{position:static}
+  .bar{gap:8px 10px}
+  .bar>div:nth-child(2) .sub{display:none}
+  .tabs{order:5;width:100%}
+  .tabs button{flex:1;padding:6px 8px}
+  #btnLogout{padding:5px 10px}
+}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo">HMNL</div>
+  <div><h1>Snimke utakmica</h1><div class="sub">upload snimki domaćina</div></div>
+  <div class="tabs" id="tabs" hidden></div>
+  <div class="spacer"></div>
+  <span class="sub hide-sm" id="who"></span>
+  <button class="btn" id="btnLogout" hidden>Odjava</button>
+</div></header>
+
+<main id="app"><div class="center"><span class="spin"></span></div></main>
+
+<script>
+const REFRESH_MIN = 5;
+const TZ = "Europe/Zagreb";
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const te = new TextEncoder(), td = new TextDecoder();
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = (d, o) => d.toLocaleString("hr-HR", { timeZone: TZ, ...o });
+const fmtDate = d => fmt(d, {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
+const fmtShort = d => fmt(d, {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"});
+const fmtDay = d => fmt(d, {weekday:"short", day:"2-digit", month:"2-digit"});
+const fmtTime = d => fmt(d, {hour:"2-digit", minute:"2-digit"});
+const fmtRel = d => { const m = Math.round((Date.now() - d) / 6e4); if (m < 1) return "upravo"; if (m < 60) return `prije ${m} min`; const h = Math.round(m / 60); return h < 24 ? `prije ${h} h` : `prije ${Math.round(h / 24)} d`; };
+const fmtDur = ms => { const h = Math.round(ms / 36e5); return h < 48 ? `${h} h` : `${Math.floor(h / 24)} d ${h % 24} h`; };
+const fmtSize = b => b >= 1e9 ? (b/1e9).toFixed(2)+" GB" : b >= 1e6 ? (b/1e6).toFixed(0)+" MB" : (b/1e3).toFixed(0)+" kB";
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const b64 = u8 => btoa(String.fromCharCode(...u8));
+const hex = u8 => [...u8].map(b => b.toString(16).padStart(2, "0")).join("");
+const sha256 = async s => new Uint8Array(await crypto.subtle.digest("SHA-256", te.encode(s)));
+
+/* ---------------- spremanje prijave (samo izvedeni ključ, nikad lozinka) ---------------- */
+const store = {
+  get() { for (const s of [sessionStorage, localStorage]) { try { const v = s.getItem("hmnl"); if (v) return JSON.parse(v); } catch {} } return null; },
+  set(v, remember) { try { (remember ? localStorage : sessionStorage).setItem("hmnl", JSON.stringify(v)); } catch {} },
+  clear() { for (const s of [sessionStorage, localStorage]) { try { s.removeItem("hmnl"); } catch {} } }
+};
+const pref = {
+  get(k) { try { return localStorage.getItem("hmnl-" + k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem("hmnl-" + k, v); } catch {} }
+};
+
+/* ---------------- kripto ---------------- */
+async function fetchMeta() {
+  const r = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) throw new Error("Podaci nisu dostupni (" + r.status + ").");
+  return r.json();
+}
+async function deriveKek(meta, user, pass) {
+  const salt = await sha256(meta.saltPrefix + "salt:" + user);
+  const base = await crypto.subtle.importKey("raw", te.encode(pass), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: meta.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+}
+class AuthError extends Error {}
+async function decryptMeta(meta, user, kek) {
+  const entry = meta.users[hex(await sha256(meta.saltPrefix + "id:" + user))];
+  if (!entry) throw new AuthError();
+  let dek;
+  try { dek = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(entry.iv) }, kek, unb64(entry.key)); }
+  catch { throw new AuthError(); }
+  const dekKey = await crypto.subtle.importKey("raw", dek, "AES-GCM", false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(meta.iv) }, dekKey, unb64(meta.data));
+  return JSON.parse(td.decode(plain));
+}
+
+/* ---------------- stanje ---------------- */
+let session = null;            // { user, kek }
+let state = { data: null, league: pref.get("league"), round: {}, filter: { club: "", round: "", q: "" } };
+let timers = [];
+
+function ingest(payload) {
+  for (const L of payload.leagues) {
+    L.uploads.forEach(u => u.created = new Date(u.created));
+    L.matches.forEach(m => {
+      m.kickoff = new Date(m.kickoff); m.deadline = new Date(m.deadline);
+      m.uploads = L.uploads.filter(u => u.match === m.id && !u.clip).sort((a, b) => a.created - b.created);
+      m.clips = L.uploads.filter(u => u.match === m.id && u.clip);
+    });
+    const byId = new Map(L.matches.map(m => [m.id, m]));
+    L.uploads.forEach(u => u.m = u.match ? byId.get(u.match) : null);
+    L.clubList = Object.entries(L.clubs).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name, "hr"));
+    L.rounds = [...new Set(L.matches.map(m => m.round))].sort((a, b) => a - b);
+  }
+  payload.generated = new Date(payload.generated);
+  state.data = payload;
+  if (!payload.leagues.some(l => l.id === state.league)) state.league = payload.leagues[0]?.id;
+}
+
+// status utakmice (računa se u pregledniku, pa se mijenja i između osvježavanja podataka)
+function statusOf(L, m, now = Date.now()) {
+  if (!L.connected && m.kickoff <= now) return "unknown";
+  const first = m.uploads[0];
+  if (first) return first.created <= m.deadline ? "ok" : "late";
+  if (now < m.kickoff) return "future";
+  if (now <= m.deadline) return "wait";
+  return "miss";
+}
+const LABEL = { ok: "U roku", late: "Kasno", miss: "Nedostaje", wait: "Čeka", future: "Nije odigrano", unknown: "Nema podataka" };
+const ICON  = { ok: "✓", late: "✓", miss: "✗", wait: "⏳", future: "", unknown: "?" };
+
+function currentRound(L) {
+  const now = Date.now(); let cur = L.rounds[0];
+  for (const r of L.rounds) if (L.matches.some(m => m.round === r && m.kickoff <= now)) cur = r;
+  return cur;
+}
+
+/* ---------------- prijava ---------------- */
+function renderLogin(msg = "") {
+  $("#who").textContent = ""; $("#btnLogout").hidden = true; $("#tabs").hidden = true;
+  app.innerHTML = `<div class="center"><form class="login" id="loginForm" autocomplete="on">
+    <h2>Prijava</h2>
+    <p>Pregled snimki utakmica za vodstvo natjecanja.</p>
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ""}
+    <label for="u">Korisničko ime</label>
+    <input type="text" id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="p">Lozinka</label>
+    <input type="password" id="p" name="password" autocomplete="current-password" required>
+    <label class="row"><input type="checkbox" id="rem"> Zapamti me na ovom uređaju</label>
+    <button class="btn primary" id="go">Prijava</button>
+  </form></div>`;
+  $("#u").focus();
+  $("#loginForm").onsubmit = async e => {
+    e.preventDefault();
+    const user = $("#u").value.trim().toLowerCase(), pass = $("#p").value, remember = $("#rem").checked;
+    const btn = $("#go"); btn.disabled = true; btn.innerHTML = `<span class="spin"></span>`;
+    try {
+      const meta = await fetchMeta();
+      const kek = await deriveKek(meta, user, pass);
+      ingest(await decryptMeta(meta, user, kek));
+      store.set({ u: user, k: b64(new Uint8Array(await crypto.subtle.exportKey("raw", kek))) }, remember);
+      startSession(user, kek);
+    } catch (err) {
+      renderLogin(err instanceof AuthError ? "Pogrešno korisničko ime ili lozinka." : err.message);
+      $("#u").value = user;
+    }
+  };
+}
+
+function startSession(user, kek) {
+  session = { user, kek };
+  $("#who").textContent = user; $("#btnLogout").hidden = false;
+  render();
+  timers.forEach(clearInterval);
+  timers = [setInterval(reload, REFRESH_MIN * 6e4), setInterval(() => session && render(), 6e4)];
+}
+async function reload() {
+  if (!session) return;
+  try { ingest(await decryptMeta(await fetchMeta(), session.user, session.kek)); render(); }
+  catch (err) { if (err instanceof AuthError) logout("Pristup je ukinut ili je lozinka promijenjena. Prijavi se ponovno."); }
+}
+function logout(msg) { timers.forEach(clearInterval); session = null; state.data = null; store.clear(); renderLogin(msg); }
+$("#btnLogout").onclick = () => logout();
+
+/* ---------------- prikaz ---------------- */
+function render() {
+  const D = state.data, L = D.leagues.find(l => l.id === state.league);
+  const now = Date.now();
+
+  // kartice liga
+  const tabs = $("#tabs");
+  tabs.hidden = D.leagues.length < 2;
+  tabs.innerHTML = D.leagues.map(l => `<button data-l="${l.id}" class="${l.id === L.id ? "on" : ""}">${esc(l.name)}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b => b.onclick = () => { state.league = b.dataset.l; pref.set("league", state.league); state.filter = { club: "", round: "", q: "" }; render(); });
+
+  const name = id => L.clubs[id] || id;
+  const round = state.round[L.id] ?? currentRound(L);
+  const st = new Map(L.matches.map(m => [m.id, statusOf(L, m, now)]));
+  const count = s => [...st.values()].filter(x => x === s).length;
+  const played = L.matches.filter(m => m.kickoff <= now).length;
+
+  // obavijesti
+  const notes = [];
+  if (L.error) notes.push(`<div class="err"><b>Podaci iz SharePointa za ${esc(L.name)} nisu učitani.</b>\n${esc(L.error)}</div>`);
+  else if (!L.connected) notes.push(`<div class="info">SharePoint za ${esc(L.name)} još nije povezan. Prikazuje se samo raspored.</div>`);
+  const unmatched = L.uploads.filter(u => !u.match && !u.clip).length;
+  if (unmatched) notes.push(`<div class="warn">${unmatched === 1 ? "Jedna snimka nije povezana" : `${unmatched} snimki nije povezano`} s utakmicom: iz naziva mape i datoteke ne vidi se koji klubovi igraju. <button class="btn" id="showUnmatched">Prikaži</button></div>`);
+  if (L.schedule.source === "rezerva")
+    notes.push(`<div class="info">Raspored nije dohvaćen s HNS Semafora pri zadnjem osvježavanju, prikazuje se spremljena kopija. Promjene termina možda nisu vidljive.</div>`);
+
+  // tablica klub × kolo (samo domaće utakmice)
+  const byClubRound = new Map();
+  for (const m of L.matches) { byClubRound.set(m.home + "|" + m.round, { m, home: true }); byClubRound.set(m.away + "|" + m.round, { m, home: false }); }
+  const head = L.rounds.map(r => `<th class="num${r === round ? " sel" : ""}"><button data-r="${r}" title="${r}. kolo">${r}.</button></th>`).join("");
+  const rows = L.clubList.map(c => `<tr><td>${esc(c.name)}</td>${L.rounds.map(r => {
+    const x = byClubRound.get(c.id + "|" + r);
+    if (!x) return `<td></td>`;
+    const m = x.m;
+    if (!x.home) return `<td><span class="cell away" title="${r}. kolo · gost kod ${esc(name(m.home))}">·</span></td>`;
+    const s = st.get(m.id), up = m.uploads[0];
+    const tip = [`${r}. kolo · ${name(m.home)} – ${name(m.away)}`, `${fmtDate(m.kickoff)}${m.timeKnown ? "" : " (satnica još nije objavljena)"}`,
+      up ? `Upload: ${fmtDate(up.created)} (${fmtDur(up.created - m.kickoff)} nakon početka)` : `Rok: ${fmtDate(m.deadline)}`, LABEL[s]].join("\n");
+    return `<td><button class="cell ${s}" data-r="${r}" title="${esc(tip)}">${ICON[s]}</button></td>`;
+  }).join("")}</tr>`).join("");
+
+  // utakmice odabranog kola
+  const games = L.matches.filter(m => m.round === round).sort((a, b) => a.kickoff - b.kickoff);
+  const gameRows = games.map(m => {
+    const s = st.get(m.id), ups = m.uploads;
+    let detail;
+    if (ups.length) detail = ups.map(u => `<a href="${esc(u.url)}" target="_blank" rel="noopener noreferrer" title="Otvara se u SharePointu">${esc(u.name)}</a>`).join("") +
+      `<span>${fmtShort(ups[0].created)} · ${fmtDur(ups[0].created - m.kickoff)} nakon početka${ups.length > 1 ? ` · ${ups.length} datoteke` : ""} · uploadao: ${esc(ups[0].uploaderLabel)}</span>`;
+    else if (s === "wait") detail = `Rok ističe ${fmtShort(m.deadline)} (još ${fmtDur(m.deadline - now)})`;
+    else if (s === "miss") detail = `Rok je istekao ${fmtShort(m.deadline)}`;
+    else if (s === "unknown") detail = "SharePoint nije povezan";
+    else detail = `Rok: ${m.timeKnown ? fmtShort(m.deadline) : "24 h nakon utakmice"}`;
+    if (m.clips.length) detail += `<span>+ ${m.clips.length} ${m.clips.length === 1 ? "isječak" : "isječka"} (izjave / društvene mreže) – ne računa se kao snimka</span>`;
+    return `<li class="game">
+      <div class="when">${fmtDay(m.kickoff)} ${m.timeKnown ? fmtTime(m.kickoff) : "<span class='muted'>· satnica TBA</span>"}</div>
+      <div class="teams"><b>${esc(name(m.home))}</b><span class="vs">–</span>${esc(name(m.away))}</div>
+      <div class="score">${m.score ? esc(m.score) : "<span class='muted'>–:–</span>"}</div>
+      <div class="status"><span class="pill ${s}">${ICON[s] ? ICON[s] + " " : ""}${LABEL[s]}</span></div>
+      <div class="detail">${detail}</div></li>`;
+  }).join("");
+
+  // svi uploadi
+  const f = state.filter, q = f.q.trim().toLowerCase();
+  const matchName = m => `${name(m.home)} – ${name(m.away)}`;
+  const shown = L.uploads.filter(u =>
+    (!f.club || (f.club === "__none" ? !u.m : u.m && (u.m.home === f.club || u.m.away === f.club))) &&
+    (!f.round || String(u.round) === f.round) &&
+    (!q || `${u.name} ${u.folder} ${u.m ? matchName(u.m) : ""} ${u.uploaderLabel}`.toLowerCase().includes(q)));
+  const HOW = { naziv: "prepoznato iz naziva", datum: "prepoznato po datumu u nazivu", "račun": "prepoznato po računu kluba", "dvosmisleno": "u nazivu su klubovi iz više utakmica", "prije utakmice": "datoteka je starija od utakmice (vjerojatno prošla sezona)" };
+
+  app.innerHTML = `
+  ${notes.join("")}
+  <p class="meta">Podaci osvježeni ${fmtRel(D.generated)} (${fmtShort(D.generated)}) · raspored: <a href="${esc(L.schedule.url)}" target="_blank" rel="noopener noreferrer">HNS Semafor</a> · rok za upload: ${D.deadlineHours} h od početka utakmice</p>
+  <div class="stats">
+    <div class="stat ok"><div class="k">Snimke u roku</div><div class="v">${count("ok")} <small>/ ${played} odigranih</small></div></div>
+    <div class="stat late"><div class="k">Poslano sa zakašnjenjem</div><div class="v">${count("late")}</div></div>
+    <div class="stat miss"><div class="k">Nedostaje (rok istekao)</div><div class="v">${count("miss")}</div></div>
+    <div class="stat wait"><div class="k">Čeka (rok još traje)</div><div class="v">${count("wait")}</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Snimke po kolima <span class="hint">red = klub kao domaćin (9 utakmica) · klik na kolo prikazuje utakmice</span></h2>
+    <div class="scroll"><table class="matrix"><thead><tr><th>Klub</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="legend">
+      <span><i class="cell ok">✓</i> u roku</span><span><i class="cell late">✓</i> poslano kasno</span>
+      <span><i class="cell miss">✗</i> nedostaje</span><span><i class="cell wait">⏳</i> rok teče</span>
+      <span><i class="cell future"></i> nije odigrano</span><span><i class="cell away">·</i> gost</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>${round}. kolo <span class="hint">${games.length} utakmica</span>
+      <span class="rnav">
+        <button class="btn" id="rPrev" ${round <= L.rounds[0] ? "disabled" : ""} aria-label="Prethodno kolo">‹</button>
+        <select id="rSel">${L.rounds.map(r => `<option value="${r}" ${r === round ? "selected" : ""}>${r}. kolo</option>`).join("")}</select>
+        <button class="btn" id="rNext" ${round >= L.rounds[L.rounds.length - 1] ? "disabled" : ""} aria-label="Sljedeće kolo">›</button>
+      </span></h2>
+    <ul class="games">${gameRows}</ul>
+  </div>
+
+  <div class="card feed">
+    <h2>Svi uploadi <span class="hint">${shown.length} od ${L.uploads.length}</span></h2>
+    <div class="filters">
+      <select id="fClub"><option value="">Svi klubovi</option><option value="__none" ${f.club === "__none" ? "selected" : ""}>Neprepoznate snimke</option>${L.clubList.map(c => `<option value="${c.id}" ${c.id === f.club ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>
+      <select id="fRound"><option value="">Sva kola</option>${L.rounds.map(r => `<option value="${r}" ${String(r) === f.round ? "selected" : ""}>${r}. kolo</option>`).join("")}</select>
+      <input id="fQ" type="search" placeholder="Traži datoteku ili klub…" value="${esc(f.q)}">
+      ${f.club || f.round || f.q ? `<button class="btn" id="fClear">Očisti</button>` : ""}
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Uploadano</th><th class="num">Kolo</th><th>Utakmica</th><th>Datoteka</th><th class="hide-sm">Uploadao</th><th class="hide-sm">Veličina</th></tr></thead>
+      <tbody>${shown.length ? shown.map(u => `<tr>
+        <td title="${fmtRel(u.created)}">${fmtDate(u.created)}</td>
+        <td class="num">${u.round != null ? u.round + "." : "–"}</td>
+        <td title="${esc(HOW[u.method] || "")}">${u.m ? esc(matchName(u.m)) : u.clip ? "" : `<span class="tag bad">${u.method === "prije utakmice" ? "starija od utakmice" : "neprepoznato"}</span>`}${u.clip ? `<span class="tag" title="Ne računa se kao snimka utakmice">isječak</span>` : ""}</td>
+        <td><a href="${esc(u.url)}" target="_blank" rel="noopener noreferrer" title="Otvara se u SharePointu">${esc(u.name)}</a>${u.folder ? `<div class="muted small">${esc(u.folder)}</div>` : ""}</td>
+        <td class="hide-sm muted">${esc(u.uploaderLabel)}</td>
+        <td class="hide-sm muted">${fmtSize(u.size)}</td></tr>`).join("")
+        : `<tr class="empty-row"><td colspan="6">${L.connected ? "Nema snimki za odabrani filter." : "Nema podataka iz SharePointa."}</td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+
+  const setRound = r => { state.round[L.id] = +r; render(); };
+  app.querySelectorAll("[data-r]").forEach(b => b.onclick = () => setRound(b.dataset.r));
+  $("#rSel").onchange = e => setRound(e.target.value);
+  $("#rPrev").onclick = () => setRound(round - 1);
+  $("#rNext").onclick = () => setRound(round + 1);
+  $("#fClub").onchange = e => setFilter({ club: e.target.value });
+  $("#showUnmatched") && ($("#showUnmatched").onclick = () => { setFilter({ club: "__none", round: "", q: "" }); $(".feed").scrollIntoView({ behavior: "smooth" }); });
+  $("#fRound").onchange = e => setFilter({ round: e.target.value });
+  $("#fQ").oninput = e => { setFilter({ q: e.target.value }); const x = $("#fQ"); x.focus(); x.setSelectionRange(x.value.length, x.value.length); };
+  $("#fClear") && ($("#fClear").onclick = () => setFilter({ club: "", round: "", q: "" }));
+}
+function setFilter(p) { state.filter = { ...state.filter, ...p }; render(); }
+
+/* ---------------- start ---------------- */
+(async () => {
+  const saved = store.get();
+  if (!saved) return renderLogin();
+  try {
+    const kek = await crypto.subtle.importKey("raw", unb64(saved.k), "AES-GCM", true, ["decrypt"]);
+    ingest(await decryptMeta(await fetchMeta(), saved.u, kek));
+    startSession(saved.u, kek);
+  } catch (err) {
+    if (err instanceof AuthError) { store.clear(); return renderLogin("Sesija je istekla. Prijavi se ponovno."); }
+    renderLogin(err.message);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+name: Osvježi snimke
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # svakih 15 min (GitHub zna kasniti nekoliko minuta)
+  workflow_dispatch:          # ručno pokretanje: Actions → Osvježi snimke → Run workflow
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Dohvati i šifriraj podatke
+        run: node scripts/build.mjs
+        env:
+          USERS: ${{ secrets.USERS }}
+          # Prijava u M365 (oba tenanta) ide preko federated credentiala (GitHub OIDC) – nema tajne koja istječe.
+          # Tenant ID i Client ID za svaku ligu su u config.json. U Entri subject mora biti:
+          #   repo:<korisnik>/<repo>:environment:github-pages
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
