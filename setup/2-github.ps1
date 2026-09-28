@@ -29,6 +29,8 @@ function Treba($cmd, $winget) {
   $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
   if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) { Stani "'$cmd' nije dostupan nakon instalacije. Otvori novi PowerShell prozor i pokreni skriptu ponovno." }
 }
+# git i gh su mozda instalirani nakon otvaranja ovog prozora - osvjezi PATH prije provjere
+$env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
 Treba git 'Git.Git'
 Treba gh 'GitHub.cli'
 

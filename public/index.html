@@ -104,12 +104,13 @@ h2{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02e
 .cell svg{width:16px;height:16px}
 .cell.ok{background:var(--ok)} .cell.late{background:var(--late)} .cell.miss{background:var(--miss)} .cell.wait{background:var(--wait)}
 .cell.future{width:32px;height:32px;background:transparent;border:1.5px solid var(--ring)}
-.cell.unknown{background:var(--track);color:var(--muted);font-size:15px;font-weight:600}
+.cell.unknown,.cell.unchecked{background:var(--track);color:var(--muted);font-size:15px;font-weight:600}
 .cell.away{width:5px;height:5px;background:var(--dot);cursor:default}
 .legend{display:flex;flex-wrap:wrap;gap:12px 28px;padding:18px 32px 22px;font-size:15px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:10px}
 .legend i{width:16px;height:16px;border-radius:50%;display:inline-block}
 .legend i.future{border:1.5px solid var(--ring)}
+.legend i.unchecked{background:var(--track)}
 .legend i.away{width:6px;height:6px;margin:0 5px;background:var(--dot)}
 
 /* kolo */
@@ -130,7 +131,7 @@ h2{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02e
 .pill{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 13px;border-radius:15px;font-size:15px;font-weight:600;white-space:nowrap}
 .pill.ok{background:var(--ok-bg);color:var(--ok-fg)} .pill.late{background:var(--late-bg);color:var(--late-fg)}
 .pill.miss{background:var(--miss-bg);color:var(--miss-fg)} .pill.wait{background:var(--wait-bg);color:var(--wait-fg)}
-.pill.future,.pill.unknown{background:var(--track);color:var(--muted)}
+.pill.future,.pill.unknown,.pill.unchecked{background:var(--track);color:var(--muted)}
 .detail{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:15px;color:var(--muted)}
 .detail a{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .detail .clips{font-size:13px}
@@ -250,6 +251,7 @@ h2{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02e
 
 <script>
 const REFRESH_MIN = 5;
+const STALE_MIN = 120;       // podaci stariji od ovoga → upozorenje na vrhu
 const TZ = "Europe/Zagreb";
 const $ = s => document.querySelector(s);
 const app = $("#app");
@@ -277,7 +279,7 @@ const SVG = {
   right: `<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5,2.5 9.5,7 5,11.5"/></svg>`,
   search: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="14.5" y2="14.5"/></svg>`
 };
-const GLYPH = { ok: SVG.check, late: SVG.check, miss: SVG.cross, wait: SVG.clock, future: "", unknown: "?" };
+const GLYPH = { ok: SVG.check, late: SVG.check, miss: SVG.cross, wait: SVG.clock, future: "", unknown: "?", unchecked: "?" };
 
 /* ---------------- spremanje prijave (samo izvedeni ključ, nikad lozinka) ---------------- */
 const store = {
@@ -336,16 +338,19 @@ function ingest(payload) {
   if (!payload.leagues.some(l => l.id === state.league)) state.league = payload.leagues[0]?.id;
 }
 
-// status utakmice (računa se u pregledniku, pa se mijenja i između osvježavanja podataka)
-function statusOf(L, m, now = Date.now()) {
+// status utakmice (računa se u pregledniku, pa se mijenja i između osvježavanja podataka).
+// "Nedostaje" smije se tvrditi samo ako je SharePoint pročitan NAKON isteka roka (gen = vrijeme builda);
+// inače snimka možda postoji, a build je još nije vidio → "Nije provjereno".
+function statusOf(L, m, now, gen) {
   if (!L.connected && m.kickoff <= now) return "unknown";
   const first = m.uploads[0];
   if (first) return first.created <= m.deadline ? "ok" : "late";
   if (now < m.kickoff) return "future";
   if (now <= m.deadline) return "wait";
+  if (m.deadline > gen) return "unchecked";
   return "miss";
 }
-const LABEL = { ok: "U roku", late: "Kasno", miss: "Nedostaje", wait: "Čeka", future: "Nije odigrano", unknown: "Nema podataka" };
+const LABEL = { ok: "U roku", late: "Kasno", miss: "Nedostaje", wait: "Čeka", future: "Nije odigrano", unknown: "Nema podataka", unchecked: "Nije provjereno" };
 
 function currentRound(L) {
   const now = Date.now(); let cur = L.rounds[0];
@@ -411,7 +416,7 @@ function render() {
   const now = Date.now();
   const name = id => L.clubs[id] || id;
   const round = state.round[L.id] ?? currentRound(L);
-  const st = new Map(L.matches.map(m => [m.id, statusOf(L, m, now)]));
+  const st = new Map(L.matches.map(m => [m.id, statusOf(L, m, now, D.generated)]));
   const count = s => [...st.values()].filter(x => x === s).length;
   const played = L.matches.filter(m => m.kickoff <= now).length;
 
@@ -421,6 +426,9 @@ function render() {
 
   // obavijesti
   const notes = [];
+  const age = now - D.generated;
+  if (age > STALE_MIN * 6e4)
+    notes.push(`<div class="note warn"><span><b>Podaci su stari ${fmtDur(age)}.</b> Zadnje osvježavanje: ${fmtShort(D.generated)}. Utakmice kojima je rok istekao nakon toga označene su kao „Nije provjereno“ dok se podaci ne osvježe.</span></div>`);
   if (L.error) notes.push(`<div class="note err"><b>Podaci iz SharePointa za ${esc(L.name)} nisu učitani.</b>\n${esc(L.error)}</div>`);
   else if (!L.connected) notes.push(`<div class="note info">SharePoint za ${esc(L.name)} još nije povezan. Prikazuje se samo raspored.</div>`);
   const unmatched = L.uploads.filter(u => !u.match && !u.clip).length;
@@ -458,6 +466,7 @@ function render() {
     else if (s === "wait") detail = `<span>Rok ističe ${fmtShort(m.deadline)} · još ${fmtDur(m.deadline - now)}</span>`;
     else if (s === "miss") detail = `<span>Rok je istekao ${fmtShort(m.deadline)}</span>`;
     else if (s === "unknown") detail = `<span>SharePoint nije povezan</span>`;
+    else if (s === "unchecked") detail = `<span>Rok je istekao ${fmtShort(m.deadline)}, a podaci su iz ${fmtShort(D.generated)} · provjera pri sljedećem osvježavanju</span>`;
     else detail = `<span>Rok: ${m.timeKnown ? fmtShort(m.deadline) : "24 h nakon utakmice"}</span>`;
     if (m.clips.length) detail += `<span class="clips">+ ${m.clips.length} ${m.clips.length === 1 ? "isječak" : "isječka"} (izjave / društvene mreže) – ne računa se kao snimka</span>`;
     return `<li class="game">
@@ -489,7 +498,7 @@ function render() {
   <div class="stats">
     ${stat("ok", SVG.check, "Snimke u roku", count("ok"), `od ${played} odigranih`)}
     ${stat("late", SVG.check, "Poslano kasno", count("late"), "")}
-    ${stat("miss", SVG.cross, "Nedostaje", count("miss"), "rok istekao")}
+    ${stat("miss", SVG.cross, "Nedostaje", count("miss"), count("unchecked") ? `rok istekao · neprovjereno: ${count("unchecked")}` : "rok istekao")}
     ${stat("wait", SVG.clock, "Čeka", count("wait"), "rok još traje")}
   </div>
 
@@ -499,7 +508,7 @@ function render() {
     <div class="legend">
       <span><i class="bg-ok"></i>U roku</span><span><i class="bg-late"></i>Poslano kasno</span>
       <span><i class="bg-miss"></i>Nedostaje</span><span><i class="bg-wait"></i>Rok teče</span>
-      <span><i class="future"></i>Nije odigrano</span><span><i class="away"></i>Gost</span>
+      ${count("unchecked") ? `<span><i class="unchecked"></i>Nije provjereno</span>` : ""}<span><i class="future"></i>Nije odigrano</span><span><i class="away"></i>Gost</span>
     </div>
   </section>
 

@@ -2,7 +2,7 @@ name: Osvježi snimke
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # svakih 15 min (GitHub zna kasniti nekoliko minuta)
+    - cron: "17 * * * *"     # jednom na sat u :17 (neparna minuta – puni termini su zagušeni; GitHub svejedno zna kasniti)
   workflow_dispatch:          # ručno pokretanje: Actions → Osvježi snimke → Run workflow
   push:
     branches: [main]
