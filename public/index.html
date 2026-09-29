@@ -70,6 +70,7 @@ h2{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.02e
 .note.err{background:var(--miss-bg);color:var(--miss-fg)}
 .note.warn{background:var(--late-bg);color:var(--late-fg)}
 .note.info{background:var(--note-bg);color:var(--note-fg)}
+.note.quiet{background:var(--track);color:var(--muted)}
 .note button{border:0;border-radius:999px;background:var(--card);color:inherit;font-size:15px;font-weight:600;padding:6px 14px;cursor:pointer}
 
 /* kartice s brojevima */
@@ -428,7 +429,7 @@ function render() {
   const notes = [];
   const age = now - D.generated;
   if (age > STALE_MIN * 6e4)
-    notes.push(`<div class="note warn"><span><b>Podaci su stari ${fmtDur(age)}.</b> Zadnje osvježavanje: ${fmtShort(D.generated)}. Utakmice kojima je rok istekao nakon toga označene su kao „Nije provjereno“ dok se podaci ne osvježe.</span></div>`);
+    notes.push(`<div class="note quiet"><span>Podaci su iz ${fmtShort(D.generated)} – utakmice kojima je rok istekao nakon toga još nisu provjerene.</span></div>`);
   if (L.error) notes.push(`<div class="note err"><b>Podaci iz SharePointa za ${esc(L.name)} nisu učitani.</b>\n${esc(L.error)}</div>`);
   else if (!L.connected) notes.push(`<div class="note info">SharePoint za ${esc(L.name)} još nije povezan. Prikazuje se samo raspored.</div>`);
   const unmatched = L.uploads.filter(u => !u.match && !u.clip).length;
